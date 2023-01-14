@@ -52,19 +52,19 @@ class MirrorStatus:
         STATUS_SPLITTING = "Split"
         STATUS_CHECKING = "CheckUp"
         STATUS_SEEDING = "Seed"
-        STATUS_CONVERTING = "↔️ Convert"
+        STATUS_CONVERTING = "Convert"
 
 class EngineStatus:
-    STATUS_ARIA = "Aria2c📶"
-    STATUS_GD = "Google Api♻️"
-    STATUS_MEGA = "MegaSDK⭕️"
-    STATUS_QB = "qBittorrent🦠"
-    STATUS_TG = "Pyrogram💥"
-    STATUS_YT = "YT-dlp🌟"
-    STATUS_EXT = "Extract | pExtract⚔️"
-    STATUS_SPLIT_MERGE = "FFmpeg🍿"
-    STATUS_ZIP = "p7zip🛠"
-    STATUS_QUEUE = "Sleep💤"
+    STATUS_ARIA = "Aria2c"
+    STATUS_GD = "Google Api"
+    STATUS_MEGA = "MegaSDK"
+    STATUS_QB = "qBittorrent"
+    STATUS_TG = "Pyrogram"
+    STATUS_YT = "YT-dlp"
+    STATUS_EXT = "pExtract"
+    STATUS_SPLIT_MERGE = "FFmpeg"
+    STATUS_ZIP = "p7zip"
+    STATUS_QUEUE = "Sleep"
 
     
 SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
@@ -354,7 +354,7 @@ def get_readable_message():
         else:
             bmsg = f"<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
             bmsg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {get_readable_time(time() - botStartTime)}"
-            bmsg += f"\n<b>🔻 DL:</b> {get_readable_file_size(dl_speed)}/s | <b>🔺 UL:</b> {get_readable_file_size(up_speed)}/s"
+            bmsg += f"\n<b>DL:</b> {get_readable_file_size(dl_speed)}/s | <b>UL:</b> {get_readable_file_size(up_speed)}/s"
         
         buttons = ButtonMaker()
         buttons.sbutton("Statistics", str(THREE))

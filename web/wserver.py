@@ -227,13 +227,9 @@ function s_validate() {
           src="https://graph.org/file/1a6ad157f55bc42b548df.png"
           alt="logo"
         />
-        <a href="https://t.me/krn2701">
+        <a href="https://t.me/AnshumanPM_2006">
           <h2 class="name">Qbittorrent Selection</h2>
         </a>
-      </div>
-      <div class="social">
-        <a href="https://github.com/weebzone/WZML"><i class="fab fa-github"></i></a>
-        <a href="https://t.me/krn2701"><i class="fab fa-telegram"></i></a>
       </div>
     </header>
     <div id="sticks">
@@ -619,13 +615,9 @@ section span{
           src="https://graph.org/file/1a6ad157f55bc42b548df.png"
           alt="logo"
         />
-        <a href="https://t.me/krn2701">
+        <a href="https://t.me/AnshumanPM_2006">
           <h2 class="name">Qbittorrent Selection</h2>
         </a>
-      </div>
-      <div class="social">
-        <a href="https://github.com/weebzone/WZML"><i class="fab fa-github"></i></a>
-        <a href="https://t.me/krn2701"><i class="fab fa-telegram"></i></a>
       </div>
     </header>
     <section>
@@ -770,10 +762,20 @@ def set_priority(id_):
             LOGGER.info(f"Verification Failed! Report! Gid: {id_}")
     return list_torrent_contents(id_)
 
+@app.route('/about')
+def about():
+    return """
+<h1>About This Bot</h1>
+<h3>Bot Username:- <a href="https://telegram.me/AnshumanLeechBot">Anshuman Leech Bot</a></h3>
+<h3>Owner:- <a href="https://telegram.me/AnshumanPM_2006">𝑨𝒏𝒔𝒉𝒖𝒎𝒂𝒏𝑷𝑴 〄</a></h3>
+<h3>Framework:- <a href="https://python.org">Python 3</a></h3>
+<h3>Library:- <a href="https://pyrogram.org">Pyrogram</a></h3>
+<h3>Deployed On:- <a href="https://dashboard.render.com">Render</a></h3>
+"""
+
 @app.route('/')
 def homepage():
-    return "<h1>See mirror-with-weeb <a href='https://github.com/weebzone/WZML'>@GitHub</a> By <a href='https://github.com/weebzone'>Code With Weeb</a></h1>"
-
+    return "<h1>Bot Running, Made By <a href='https://telegram.me/AnshumanPM_2006'>𝑨𝒏𝒔𝒉𝒖𝒎𝒂𝒏𝑷𝑴 〄</a></h1>"
 @app.errorhandler(Exception)
 def page_not_found(e):
     return f"<h1>404: Torrent not found! Mostly wrong input. <br><br>Error: {e}</h2>", 404

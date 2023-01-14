@@ -92,10 +92,7 @@ def stats(update, context):
 
     else:
             stats = f'<b>╭─《🌐 BOT STATISTICS 🌐》</b>\n' \
-                    f'<b>├  Updated On: </b>{last_commit}\n'\
                     f'<b>├  Uptime: </b>{currentTime}\n'\
-                    f'<b>├  Version: </b>{version}\n'\
-                    f'<b>├  OS Uptime: </b>{osUptime}\n'\
                     f'<b>├  CPU:</b> [{progress_bar(cpuUsage)}] {cpuUsage}%\n'\
                     f'<b>├  RAM:</b> [{progress_bar(mem_p)}] {mem_p}%\n'\
                     f'<b>├  Disk:</b> [{progress_bar(disk)}] {disk}%\n'\
@@ -165,7 +162,7 @@ Type /{BotCommands.HelpCommand} to get a list of available commands
         else:
             sendMessage(start_string, context.bot, update.message, reply_markup)
     else:
-        text = f"Not Authorized user, deploy your own mirror bot"
+        text = f"Not Authorized user"
         if config_dict['PICS']:
             sendPhoto(text, context.bot, update.message, rchoice(config_dict['PICS']), reply_markup)
         else:
@@ -206,12 +203,11 @@ def log(update, context):
 
 
 help_string = '''
-<b><a href='https://github.com/weebzone/WZML'>WeebZone</a></b> - The Ultimate Telegram MIrror-Leech Bot to Upload Your File & Link in Google Drive & Telegram
-Choose a help category:
+Hei, Need Help!!
 '''
 
 help_string_telegraph_user = f'''
-<b><u>👤 User Commands</u></b>
+<b><u>User Commands</u></b>
 <br><br>
 • <b>/{BotCommands.HelpCommand}</b>: To get this message
 <br><br>
@@ -287,7 +283,7 @@ help_user = telegraph.create_page(
     content=help_string_telegraph_user)["path"]
 
 help_string_telegraph_admin = f'''
-<b><u>🛡️ Admin Commands</u></b>
+<b><u>Admin Commands</u></b>
 <br><br>
 • <b>/{BotCommands.PingCommand}</b>: Check how long it takes to Ping the Bot
 <br><br>
@@ -357,6 +353,7 @@ if config_dict['SET_BOT_COMMANDS']:
         (f'{BotCommands.UserSetCommand[0]}','Users settings'),
         (f'{BotCommands.BotSetCommand[0]}','BOT settings'),
         (f'{BotCommands.StatusCommand}','Get mirror status message'),
+        (f'{BotCommands.StatsCommand}','Get System Status'),
         (f'{BotCommands.SpeedCommand[0]}','Speedtest'),
         (f'{BotCommands.WayBackCommand}','Internet Archive'),
         (f'{BotCommands.MediaInfoCommand[0]}','Get Information of telegram Files'),
@@ -425,20 +422,20 @@ def main():
                 if ospath.isfile(".restartmsg"):
                     with open(".restartmsg") as f:
                         chat_id, msg_id = map(int, f)
-                    msg = f"😎 Restarted Successfully❗\n"
+                    msg = f"Restarted Successfully\n"
                 else:
-                    msg = f"😎 Bot Restarted!\n"
-                msg += f"📅 DATE: {date}\n"
-                msg += f"⌚ TIME: {time}\n"
-                msg += f"🌐 TIMEZONE: {timez}\n"
-                msg += f"🤖 VERSION: {version}"
+                    msg = f"Bot Restarted!\n"
+                msg += f"DATE: {date}\n"
+                msg += f"TIME: {time}\n"
+                msg += f"TIMEZONE: {timez}\n"
+                msg += f"VERSION: {version}"
 
                 for tag, links in data.items():
                     msg += f"\n{tag}: "
                     for index, link in enumerate(links, start=1):
                         msg += f" <a href='{link}'>{index}</a> |"
                         if len(msg.encode()) > 4000:
-                            if '😎 Restarted Successfully❗' in msg and cid == chat_id:
+                            if 'Restarted Successfully' in msg and cid == chat_id:
                                 try:
                                     bot.editMessageText(msg, chat_id, msg_id)
                                 except:
@@ -450,7 +447,7 @@ def main():
                                 except Exception as e:
                                     LOGGER.error(e)
                             msg = ''
-                if '😎 Restarted Successfully❗' in msg and cid == chat_id:
+                if 'Restarted Successfully' in msg and cid == chat_id:
                     try:
                         bot.editMessageText(msg, chat_id, msg_id)
                     except:
@@ -466,11 +463,11 @@ def main():
         with open(".restartmsg") as f:
             chat_id, msg_id = map(int, f)
         try:
-            msg = f"😎 Restarted Successfully❗\n"
-            msg += f"📅 DATE: {date}\n"
-            msg += f"⌚ TIME: {time}\n"
-            msg += f"🌐 TIMEZONE: {timez}\n"
-            msg += f"🤖 VERSION: {version}"            
+            msg = f"Restarted Successfully\n"
+            msg += f"DATE: {date}\n"
+            msg += f"TIME: {time}\n"
+            msg += f"TIMEZONE: {timez}\n"
+            msg += f"VERSION: {version}"            
             bot.edit_message_text(msg, chat_id, msg_id)
         except Exception as e:
             LOGGER.info(e)
@@ -498,7 +495,7 @@ def main():
     dispatcher.add_handler(stats_handler)
     dispatcher.add_handler(log_handler)
     updater.start_polling(drop_pending_updates=IGNORE_PENDING_REQUESTS)
-    LOGGER.info("💥𝐁𝐨𝐭 𝐒𝐭𝐚𝐫𝐭𝐞𝐝❗")
+    LOGGER.info("Bot Started!!")
     signal(SIGINT, exit_clean_up)
 
 app.start()

@@ -412,13 +412,13 @@ def prun(playwright: Playwright, link: str) -> str:
         "xpath=//div[text()='Direct Download']/parent::button")
     expect(firstbtn).to_be_visible()
     firstbtn.click()
-    sleep(10)
+    sleep(8)
     
     secondBtn = page.get_by_role("button", name="Download Now")
     expect(secondBtn).to_be_visible()
     with page.expect_navigation():
         secondBtn.click()
-        sleep(10)
+        sleep(5)
 
     Flink = page.url
 

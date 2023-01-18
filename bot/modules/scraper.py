@@ -10,6 +10,7 @@ from urllib.parse import unquote, quote
 from requests import get as rget, post as rpost
 from bs4 import BeautifulSoup, NavigableString, Tag
 from base64 import b64decode, b64encode
+from playwright.sync_api import Playwright, sync_playwright, expect
 
 from telegram import Message
 from telegram.ext import CommandHandler
@@ -274,6 +275,11 @@ def scrapper(update, context):
                 if len(gd_txt) > 4000:
                     sent = sendMessage("<i>Running More Scrape ...</i>", context.bot, update.message)
                     gd_txt = ""
+    elif "filepress" in link:
+        sent = sendMessage('Running Scrape ...', context.bot, update.message)
+        gd_txt = filepress(link)
+        if gd_txt != '':
+            editMessage(gd_txt, sent)
     elif rematch(r'https?://.+\/\d+\:\/', link):
         sent = sendMessage('Running Scrape ...', context.bot, update.message)
         gd_txt, no = "", 0
@@ -394,3 +400,34 @@ def indexScrape(payload_input, url, auth, folder_mode=False):
 srp_handler = CommandHandler(BotCommands.ScrapeCommand, scrapper,
                             filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
 dispatcher.add_handler(srp_handler)
+
+def prun(playwright: Playwright, link: str) -> str:
+    browser = playwright.chromium.launch()
+    context = browser.new_context()
+
+    page = context.new_page()
+    page.goto(link)
+
+    firstbtn = page.locator(
+        "xpath=//div[text()='Direct Download']/parent::button")
+    expect(firstbtn).to_be_visible()
+    firstbtn.click()
+    sleep(10)
+    
+    secondBtn = page.get_by_role("button", name="Download Now")
+    expect(secondBtn).to_be_visible()
+    with page.expect_navigation():
+        secondBtn.click()
+        sleep(10)
+
+    Flink = page.url
+
+    context.close()
+    browser.close()
+
+    return Flink
+
+def filepress(link: str) -> str:
+    with sync_playwright() as playwright:
+        flink = prun(playwright, link)
+        return flink

@@ -850,7 +850,14 @@ if ospath.exists('categories.txt'):
             else:
                 CATEGORY_INDEX.append('')
 
-Popen(f"gunicorn web.wserver:app", shell=True)
+try:
+    PORT = environ.get('PORT')
+    if len(PORT) == 0:
+        raise KeyError
+except:
+    PORT = 80
+
+Popen(f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT}", shell=True)
 
 srun(["qbittorrent-nox", "-d", "--profile=."])
 if not ospath.exists('.netrc'):
@@ -867,6 +874,9 @@ if ospath.exists('accounts.zip'):
     osremove('accounts.zip')
 if not ospath.exists('accounts'):
     config_dict['USE_SERVICE_ACCOUNTS'] = False
+sleep(0.5)
+
+alive = Popen(["python3", "alive.py"])
 sleep(0.5)
 
 aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))

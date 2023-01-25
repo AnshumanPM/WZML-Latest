@@ -445,9 +445,8 @@ def is_url(url: str):
 def is_gdrive_link(url: str):
     return "drive.google.com" in url
 
-def is_gdtot_link(url: str):
-    url = re_match(r'https?://.+\.gdtot\.\S+', url)
-    return bool(url)
+def is_Sharerlink(url: str):
+    return bool(re_match(r'https?:\/\/.+\.gdtot\.\S+|https?:\/\/(filepress|filebee|appdrive|gdflix)\.\S+', url))
 
 def is_udrive_link(url: str):
     if 'drivehub.ws' in url:
@@ -462,10 +461,6 @@ def is_sharer_link(url: str):
 
 def is_sharedrive_link(url: str):
     url = re_match(r'https?://(sharedrive)\.\S+', url)
-    return bool(url)
-
-def is_filepress_link(url: str):
-    url = re_match(r'https?://(filepress|filebee)\.\S+', url)
     return bool(url)
 
 def is_mega_link(url: str):

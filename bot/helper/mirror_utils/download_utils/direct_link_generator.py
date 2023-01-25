@@ -18,7 +18,7 @@ from playwright.sync_api import Playwright, sync_playwright, expect
 
 from bot import LOGGER, config_dict
 from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.ext_utils.bot_utils import is_gdtot_link, is_udrive_link, is_sharer_link, is_sharedrive_link, is_filepress_link
+from bot.helper.ext_utils.bot_utils import is_udrive_link, is_sharer_link, is_sharedrive_link, is_Sharerlink
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 
 fmed_list = ['fembed.net', 'fembed.com', 'femax20.com', 'fcdn.stream', 'feurl.com', 'layarkacaxxi.icu',
@@ -85,16 +85,21 @@ def direct_link_generator(link: str):
         return ouo(link)
     elif 'terabox.com' in link:
         return terabox(link)
-    elif is_gdtot_link(link):
-        return gdtot(link)
+    elif is_Sharerlink(link):
+        if 'gdtot' in link:
+            return gdtot(link)
+        elif 'filepress' in link:
+            return filepress(link)
+        elif any(x in link for x in ['appdrive', 'gdflix']):
+            return sharer_scraper(link)
+        else:
+            raise DirectDownloadLinkException('ERROR: Currently this sharer link does not support')
     elif is_udrive_link(link):
         return udrive(link)
     elif is_sharer_link(link):
         return sharer_pw_dl(link)
     elif is_sharedrive_link(link):
         return shareDrive(link)
-    elif is_filepress_link(link):
-        return filepress(link)
     elif any(x in link for x in fmed_list):
         return fembed(link)
     elif any(x in link for x in ['sbembed.com', 'watchsb.com', 'streamsb.net', 'sbplay.org']):
@@ -579,30 +584,6 @@ def krakenfiles(page_link: str) -> str:
         raise DirectDownloadLinkException(
             f"ERROR: Failed to acquire download URL from kraken for : {page_link}")
 
-
-def gdtot(url: str) -> str:
-    """ Gdtot google drive link generator
-    By https://github.com/xcscxr """
-
-    if not config_dict['GDTOT_CRYPT']:
-        raise DirectDownloadLinkException("ERROR: CRYPT cookie not provided")
-
-    match = re_findall(r'https?://(.+)\.gdtot\.(.+)\/\S+\/\S+', url)[0]
-
-    with rsession() as client:
-        client.cookies.update({'crypt': config_dict['GDTOT_CRYPT']})
-        client.get(url)
-        res = client.get(
-            f"https://{match[0]}.gdtot.{match[1]}/dld?id={url.split('/')[-1]}")
-    matches = re_findall('gd=(.*?)&', res.text)
-    try:
-        decoded_id = b64decode(str(matches[0])).decode('utf-8')
-    except:
-        raise DirectDownloadLinkException(
-            "ERROR: Try in your broswer, mostly file not found or user limit exceeded!")
-    return f'https://drive.google.com/open?id={decoded_id}'
-
-
 def parse_info(res):
     info_parsed = {}
     info_chunks = re_findall(">(.*?)<\/td>", res.text)
@@ -755,48 +736,6 @@ def shareDrive(url, directLogin=True):
             raise DirectDownloadLinkException(
                 "ERROR! File Not Found or User rate exceeded !!")
 
-
-def prun(playwright: Playwright, link: str) -> str:
-    browser = playwright.chromium.launch()
-    context = browser.new_context()
-
-    page = context.new_page()
-    page.goto(link)
-
-    firstbtn = page.locator(
-        "xpath=//div[text()='Direct Download']/parent::button")
-    expect(firstbtn).to_be_visible()
-    firstbtn.click()
-    sleep(10)
-    
-    chklink = page.url
-
-    if not 'filepress' in chklink:
-        raise DirectDownloadLinkException("Unable To Get Google Drive Link!")
-
-    secondBtn = page.get_by_role("button", name="Download Now")
-    expect(secondBtn).to_be_visible()
-    with page.expect_navigation():
-        secondBtn.click()
-        sleep(10)
-
-    Flink = page.url
-
-    context.close()
-    browser.close()
-
-    if 'drive.google.com' in Flink:
-        return Flink
-    else:
-        raise DirectDownloadLinkException("Unable To Get Google Drive Link!")
-
-
-def filepress(link: str) -> str:
-    with sync_playwright() as playwright:
-        flink = prun(playwright, link)
-        return flink
-
-
 def terabox(url) -> str:
     if not ospath.isfile('terabox.txt'):
         raise DirectDownloadLinkException("ERROR: terabox.txt not found")
@@ -819,3 +758,81 @@ def terabox(url) -> str:
     if result['isdir'] != '0':
         raise DirectDownloadLinkException("ERROR: Can't download folder")
     return result['dlink']
+
+def filepress(url):
+    cget = create_scraper().request
+    try:
+        url = cget('GET', url).url
+        raw = urlparse(url)
+        json_data = {
+            'id': raw.path.split('/')[-1],
+            'method': 'publicDownlaod',
+            }
+        api = f'{raw.scheme}://api.{raw.hostname}/api/file/downlaod/'
+        res = cget('POST', api, headers={'Referer': f'{raw.scheme}://{raw.hostname}'}, json=json_data).json()
+    except Exception as e:
+        raise DirectDownloadLinkException(f'ERROR: {e.__class__.__name__}')
+    if 'data' not in res:
+        raise DirectDownloadLinkException(f'ERROR: {res["statusText"]}')
+    return f'https://drive.google.com/uc?id={res["data"]}&export=download'
+
+def gdtot(url):
+    cget = create_scraper().request
+    try:
+        res = cget('GET', f'https://gdbot.xyz/file/{url.split("/")[-1]}')
+    except Exception as e:
+        raise DirectDownloadLinkException(f'ERROR: {e.__class__.__name__}')
+    token_url = etree.HTML(res.content).xpath("//a[contains(@class,'inline-flex items-center justify-center')]/@href")
+    if not token_url:
+        raise DirectDownloadLinkException('ERROR: Token page url not found')
+    token_url = token_url[0]
+    try:
+        token_page = cget('GET', token_url)
+    except Exception as e:
+        raise DirectDownloadLinkException(f'ERROR: {e.__class__.__name__} with {token_url}')
+    path = re_findall('\("(.*?)"\)', token_page.text)
+    if not path:
+        raise DirectDownloadLinkException('ERROR: Cannot bypass this')
+    path = path[0]
+    raw = urlparse(token_url)
+    final_url = f'{raw.scheme}://{raw.hostname}{path}'
+    return sharer_scraper(final_url)
+
+def sharer_scraper(url):
+    try:
+        cget = create_scraper().request
+        url = cget('GET', url).url
+        raw = urlparse(url)
+        res = cget('GET', url)
+    except Exception as e:
+        raise DirectDownloadLinkException(f'ERROR: {e.__class__.__name__}')
+    key = re_findall('"key",\s+"(.*?)"', res.text)
+    if not key:
+        raise DirectDownloadLinkException("ERROR: Key not found!")
+    key = key[0]
+    if not etree.HTML(res.content).xpath("//button[@id='drc']"):
+        raise DirectDownloadLinkException("ERROR: This link don't have direct download button")
+    headers = {
+        'Content-Type': 'multipart/form-data; boundary=----WebKitFormBoundaryi3pOrWU7hGYfwwL4',
+        'x-token': raw.hostname,
+    }
+    data = '------WebKitFormBoundaryi3pOrWU7hGYfwwL4\r\nContent-Disposition: form-data; name="action"\r\n\r\ndirect\r\n' \
+        f'------WebKitFormBoundaryi3pOrWU7hGYfwwL4\r\nContent-Disposition: form-data; name="key"\r\n\r\n{key}\r\n' \
+        '------WebKitFormBoundaryi3pOrWU7hGYfwwL4\r\nContent-Disposition: form-data; name="action_token"\r\n\r\n\r\n' \
+        '------WebKitFormBoundaryi3pOrWU7hGYfwwL4--\r\n'
+    try:
+        res = cget("POST", url, cookies=res.cookies, headers=headers, data=data).json()
+    except Exception as e:
+        raise DirectDownloadLinkException(f'ERROR: {e.__class__.__name__}')
+    if "url" not in res:
+        raise DirectDownloadLinkException('ERROR: Drive Link not found')
+    if "drive.google.com" in res["url"]:
+        return res["url"]
+    try:
+        res = cget('GET', res["url"])
+    except Exception as e:
+        raise DirectDownloadLinkException(f'ERROR: {e.__class__.__name__}')
+    if (drive_link := etree.HTML(res.content).xpath("//a[contains(@class,'btn')]/@href")) and "drive.google.com" in drive_link[0]:
+        return drive_link[0]
+    else:
+        raise DirectDownloadLinkException('ERROR: Drive Link not found')

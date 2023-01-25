@@ -5,11 +5,11 @@ from threading import Thread
 from time import sleep, time
 
 from bot.helper.ext_utils.bot_utils import is_sudo, is_paid, get_user_task, get_category_buttons, get_readable_file_size, getUserTDs, \
-                    new_thread, get_bot_pm, is_url, is_gdrive_link, is_gdtot_link, is_udrive_link, is_sharer_link, \
-                    is_sharedrive_link, is_filepress_link, userlistype
+                    new_thread, get_bot_pm, is_url, is_gdrive_link, is_udrive_link, is_sharer_link, \
+                    is_sharedrive_link, is_Sharerlink, userlistype
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.ext_utils.timegap import timegap_check
-from bot.helper.mirror_utils.download_utils.direct_link_generator import gdtot, udrive, sharer_pw_dl, shareDrive, filepress
+from bot.helper.mirror_utils.download_utils.direct_link_generator import gdtot, udrive, sharer_pw_dl, shareDrive, filepress, direct_link_generator
 from bot.helper.mirror_utils.status_utils.clone_status import CloneStatus
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.telegram_helper.bot_commands import BotCommands
@@ -121,7 +121,7 @@ def _clone(message, bot):
         else:
             tag = reply_to.from_user.mention_html(reply_to.from_user.first_name)
 
-    if not (is_gdrive_link(link) or (link.strip().isdigit() and multi == 0) or is_gdtot_link(link) or is_udrive_link(link) or is_sharer_link(link) or is_sharedrive_link(link) or is_filepress_link(link)):
+    if not (is_gdrive_link(link) or (link.strip().isdigit() and multi == 0) or is_Sharerlink(link) or is_udrive_link(link) or is_sharer_link(link) or is_sharedrive_link(link)):
         return sendMessage("Send Gdrive or GDToT/HubDrive/DriveHub(ws)/KatDrive/Kolop/DriveFire/FilePress/SharerPw/ShareDrive link along with command or by replying to the link by command\n\n<b>Multi links only by replying to first link/file:</b>\n<code>/cmd</code> 10(number of links/files)", bot, message)
 
     timeout = 60
@@ -167,29 +167,25 @@ def start_clone(listelem):
     BOT_PM_X = get_bot_pm(user_id)
     reply_to = message.reply_to_message
 
-    is_gdtot = is_gdtot_link(link)
+    is_sharer = is_Sharerlink(link)
     is_udrive = is_udrive_link(link)
-    is_sharer = is_sharer_link(link)
+    is_sharer_pw = is_sharer_link(link)
     is_sharedrive = is_sharedrive_link(link)
-    is_filepress = is_filepress_link(link)
-    if (is_gdtot or is_udrive or is_sharer or is_sharedrive or is_filepress):
+    if (is_sharer or is_udrive or is_sharer_pw or is_sharedrive):
         try:
             LOGGER.info(f"Processing: {link}")
-            if is_gdtot:
-                msg = sendMessage(f"GDTOT LINK DETECTED !", bot, message)
-                link = gdtot(link)
+            if is_sharer:
+                msg = sendMessage(f"DRIVE LINK DETECTED !", bot, message)
+                link = direct_link_generator(link)
             elif is_udrive:
                 msg = sendMessage(f"UDRIVE LINK DETECTED !", bot, message)
                 link = udrive(link)
-            elif is_sharer:
+            elif is_sharer_pw:
                 msg = sendMessage(f"SHARER LINK DETECTED !", bot, message)
                 link = sharer_pw_dl(link)
             elif is_sharedrive:
                 msg = sendMessage(f"SHAREDRIVE LINK DETECTED !", bot, message)
                 link = shareDrive(link)
-            elif is_filepress:
-                msg = sendMessage(f"FILEPRESS LINK DETECTED !", bot, message)
-                link = filepress(link)
             LOGGER.info(f"Generated GDrive Link: {link}")
             deleteMessage(bot, msg)
         except DirectDownloadLinkException as e:
@@ -371,7 +367,7 @@ def start_clone(listelem):
         warnmsg = ''
 
     if config_dict['SAME_ACC_COOKIES']:
-        if (is_gdtot or is_udrive or is_sharer or is_sharedrive):
+        if (is_udrive or is_sharer_pw or is_sharedrive):
             gd.deletefile(link)
 
     if BOT_PM_X and 'mirror_logs' in user_data:
